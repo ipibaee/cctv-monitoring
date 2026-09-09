@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { MOCK_BUILDINGS, MOCK_CAMERAS } from '@/lib/mockData'
 
 export async function GET() {
   try {
@@ -15,8 +16,15 @@ export async function GET() {
     })
     return NextResponse.json(buildings)
   } catch (error) {
-    console.error('[API] GET /buildings error:', error)
-    return NextResponse.json({ error: 'Gagal mengambil data gedung' }, { status: 500 })
+    console.warn('[API] Database not connected. Falling back to Demo Mode mock buildings.')
+    const buildingsWithCams = MOCK_BUILDINGS.map(b => ({
+      ...b,
+      cameras: MOCK_CAMERAS.filter(c => c.buildingId === b.id),
+      _count: { cameras: MOCK_CAMERAS.filter(c => c.buildingId === b.id).length }
+    }))
+    return NextResponse.json(buildingsWithCams, {
+      headers: { 'X-Demo-Mode': 'true' }
+    })
   }
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { MOCK_CAMERAS } from '@/lib/mockData'
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,8 +38,27 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(cameras)
   } catch (error) {
-    console.error('[API] GET /cameras error:', error)
-    return NextResponse.json({ error: 'Gagal mengambil data kamera' }, { status: 500 })
+    console.warn('[API] Database not connected or query error. Falling back to Demo Mode mock data.')
+    
+    // Filter mock data based on query params
+    const { searchParams } = new URL(request.url)
+    const buildingId = searchParams.get('buildingId')
+    const status = searchParams.get('status')
+    const isFavorite = searchParams.get('isFavorite')
+    const search = searchParams.get('search')
+
+    let filtered = [...MOCK_CAMERAS]
+    if (buildingId) filtered = filtered.filter(c => c.buildingId === buildingId)
+    if (status) filtered = filtered.filter(c => c.status === status)
+    if (isFavorite === 'true') filtered = filtered.filter(c => c.isFavorite)
+    if (search) {
+      const q = search.toLowerCase()
+      filtered = filtered.filter(c => c.name.toLowerCase().includes(q) || c.building?.name?.toLowerCase().includes(q))
+    }
+
+    return NextResponse.json(filtered, {
+      headers: { 'X-Demo-Mode': 'true' }
+    })
   }
 }
 
@@ -69,6 +89,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(camera, { status: 201 })
   } catch (error) {
     console.error('[API] POST /cameras error:', error)
-    return NextResponse.json({ error: 'Gagal menambah kamera' }, { status: 500 })
+    return NextResponse.json({ error: 'Gagal menambah kamera (pastikan Database Neon sudah terhubung)' }, { status: 500 })
   }
 }

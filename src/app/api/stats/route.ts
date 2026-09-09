@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { MOCK_STATS } from '@/lib/mockData'
 
 export async function GET() {
   try {
@@ -12,7 +13,9 @@ export async function GET() {
     ])
     return NextResponse.json({ total, online, offline, maintenance, favorites })
   } catch (error) {
-    console.error('[API] GET /stats error:', error)
-    return NextResponse.json({ error: 'Gagal mengambil statistik' }, { status: 500 })
+    console.warn('[API] Database not connected. Falling back to Demo Mode stats.')
+    return NextResponse.json(MOCK_STATS, {
+      headers: { 'X-Demo-Mode': 'true' }
+    })
   }
 }

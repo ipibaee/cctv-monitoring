@@ -23,9 +23,9 @@ export default function AdminPage() {
         fetch('/api/buildings').then(r => r.json()),
         fetch('/api/dvrs').then(r => r.json()),
       ])
-      setCameras(c)
-      setBuildings(b)
-      setDvrs(d)
+      setCameras(Array.isArray(c) ? c : [])
+      setBuildings(Array.isArray(b) ? b : [])
+      setDvrs(Array.isArray(d) ? d : [])
     } finally {
       setLoading(false)
     }

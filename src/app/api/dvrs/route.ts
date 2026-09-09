@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { MOCK_DVRS } from '@/lib/mockData'
 
 export async function GET() {
   try {
@@ -11,8 +12,10 @@ export async function GET() {
     })
     return NextResponse.json(dvrs)
   } catch (error) {
-    console.error('[API] GET /dvrs error:', error)
-    return NextResponse.json({ error: 'Gagal mengambil data DVR' }, { status: 500 })
+    console.warn('[API] Database not connected. Falling back to Demo Mode mock DVRs.')
+    return NextResponse.json(MOCK_DVRS, {
+      headers: { 'X-Demo-Mode': 'true' }
+    })
   }
 }
 

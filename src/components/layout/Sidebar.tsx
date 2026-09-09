@@ -22,8 +22,9 @@ export default function Sidebar({
   isOpen,
   onClose,
 }: SidebarProps) {
+  const safeBuildings = Array.isArray(buildings) ? buildings : []
   const [expandedBuildings, setExpandedBuildings] = useState<Set<string>>(
-    new Set(buildings.map((b) => b.id))
+    () => new Set(safeBuildings.map((b) => b.id))
   )
 
   const toggleBuilding = (id: string) => {
@@ -33,8 +34,8 @@ export default function Sidebar({
     setExpandedBuildings(next)
   }
 
-  const totalOnline = buildings.flatMap(b => b.cameras).filter(c => c.status === 'ONLINE').length
-  const totalCams = buildings.flatMap(b => b.cameras).length
+  const totalOnline = safeBuildings.flatMap(b => b.cameras || []).filter(c => c?.status === 'ONLINE').length
+  const totalCams = safeBuildings.flatMap(b => b.cameras || []).length
 
   return (
     <>
@@ -86,8 +87,9 @@ export default function Sidebar({
 
         {/* Buildings list */}
         <div className="flex-1 overflow-y-auto px-3 pb-4 pt-2 space-y-1">
-          {buildings.map((building) => {
-            const onlineCount = building.cameras.filter((c) => c.status === 'ONLINE').length
+          {safeBuildings.map((building) => {
+            const cams = Array.isArray(building.cameras) ? building.cameras : []
+            const onlineCount = cams.filter((c) => c?.status === 'ONLINE').length
             const isExpanded = expandedBuildings.has(building.id)
             const isSelected = selectedBuildingId === building.id
 
@@ -118,7 +120,7 @@ export default function Sidebar({
                 {/* Camera list under building */}
                 {isExpanded && (
                   <div className="pl-6 mt-0.5 space-y-0.5">
-                    {building.cameras.map((cam) => (
+                    {cams.map((cam) => (
                       <button
                         key={cam.id}
                         onClick={() => onSelectCamera(cam)}
